@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cc: gcc
+            cxx: g++
+          - cc: clang
+            cxx: clang++
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        run: make check CC=${{ matrix.cc }} CXX=${{ matrix.cxx }}
+      # real devices: fails (instead of skipping) if uinput is not there
+      - name: Test against /dev/uinput
+        run: |
+          sudo modprobe uinput
+          sudo VIRT_REQUIRE_UINPUT=1 ./build/test_uinput
